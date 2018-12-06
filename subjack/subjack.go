@@ -8,6 +8,7 @@ import (
 type Options struct {
 	Domain   string
 	Wordlist string
+	DirPath	 string
 	Threads  int
 	Timeout  int
 	Output   string

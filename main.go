@@ -4,13 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/haccer/subjack/subjack"
+	"./subjack"
 )
 
 func main() {
 	GOPATH := os.Getenv("GOPATH")
-	Project := "/src/github.com/haccer/subjack/"
+	Project := "./"
 	configFile := "fingerprints.json"
 	defaultConfig := GOPATH + Project + configFile
 
@@ -18,6 +19,7 @@ func main() {
 
 	flag.StringVar(&o.Domain, "d", "", "Domain.")
 	flag.StringVar(&o.Wordlist, "w", "", "Path to wordlist.")
+	flag.StringVar(&o.DirPath, "f", "", "Path to folder contains list of subdomain files")
 	flag.IntVar(&o.Threads, "t", 10, "Number of concurrent threads (Default: 10).")
 	flag.IntVar(&o.Timeout, "timeout", 10, "Seconds to wait before connection timeout (Default: 10).")
 	flag.BoolVar(&o.Ssl, "ssl", false, "Force HTTPS connections (May increase accuracy (Default: http://).")
@@ -39,5 +41,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	subjack.Process(&o)
+	o.Output = o.DirPath + "/subjack"
+	os.MkdirAll(o.Output, os.ModePerm);
+	o.Output += "/output.txt"
+
+	var files []string
+
+    filepath.Walk(o.DirPath, func(path string, info os.FileInfo, err error) error {
+        files = append(files, path)
+        if info.IsDir() {
+    		return nil
+		}
+        o.Wordlist = path
+        subjack.Process(&o)
+        return nil
+    })
 }
